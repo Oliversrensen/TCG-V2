@@ -1,0 +1,11 @@
+# Build from repo root so TCG.Core, TCG.GameLogic, TCG.Economy are included.
+# In Railway: leave Root Directory EMPTY (use repo root).
+
+[phases.setup]
+nixPkgs = ["dotnet-sdk_8"]
+
+[phases.build]
+cmds = ["dotnet publish backend/TCG.Server/TCG.Server.csproj -c Release -o out"]
+
+[start]
+cmd = "dotnet out/TCG.Server.dll"

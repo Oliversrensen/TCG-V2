@@ -17,5 +17,5 @@ RUN dotnet publish backend/TCG.Server/TCG.Server.csproj -c Release -o /app/publi
 # Runtime
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
-COPY --from=build /app/publish .
-ENTRYPOINT ["dotnet", "TCG.Server.dll"]
+COPY --from=build /app/publish ./out
+ENTRYPOINT ["dotnet", "out/TCG.Server.dll"]

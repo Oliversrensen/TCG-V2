@@ -15,4 +15,4 @@ Configured via `nixpacks.toml`:
 - `NEON_DATABASE_URL` – Neon PostgreSQL connection string
 - `NEON_AUTH_URL` – Neon Auth URL
 - `ASPNETCORE_ENVIRONMENT` – `Production`
-- `REDIS_CONNECTION` – (optional) Redis URL
+- `REDIS_URL` or `REDIS_CONNECTION` – Redis URL (from Railway Redis plugin; enables Redis-backed matchmaking, match state, connection store)

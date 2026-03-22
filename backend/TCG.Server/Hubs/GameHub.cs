@@ -16,14 +16,14 @@ public class GameHub : Hub
     private readonly IMatchmakingService _matchmaking;
     private readonly IGameEngine _gameEngine;
     private readonly IMatchStateStore _matchState;
-    private readonly MatchConnectionStore _connections;
+    private readonly IMatchConnectionStore _connections;
     private readonly IServiceScopeFactory _scopeFactory;
 
     public GameHub(
         IMatchmakingService matchmaking,
         IGameEngine gameEngine,
         IMatchStateStore matchState,
-        MatchConnectionStore connections,
+        IMatchConnectionStore connections,
         IServiceScopeFactory scopeFactory)
     {
         _matchmaking = matchmaking;

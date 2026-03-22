@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using TCG.Core.Models;
@@ -9,25 +8,24 @@ using TCG.Server.Hubs;
 
 namespace TCG.Server.Services;
 
-/// <summary>
-/// In-memory matchmaking queue. Replace with Redis-backed implementation for production scale.
-/// </summary>
 public class MatchmakingService : IMatchmakingService
 {
-    private readonly ConcurrentDictionary<string, (string UserId, Guid DeckId)> _queue = new();
+    private readonly IMatchmakingQueue _queue;
     private readonly IHubContext<GameHub> _hubContext;
     private readonly IGameEngine _gameEngine;
     private readonly IMatchStateStore _matchState;
-    private readonly MatchConnectionStore _connections;
+    private readonly IMatchConnectionStore _connections;
     private readonly TcgDbContext _db;
 
     public MatchmakingService(
+        IMatchmakingQueue queue,
         IHubContext<GameHub> hubContext,
         IGameEngine gameEngine,
         IMatchStateStore matchState,
-        MatchConnectionStore connections,
+        IMatchConnectionStore connections,
         TcgDbContext db)
     {
+        _queue = queue;
         _hubContext = hubContext;
         _gameEngine = gameEngine;
         _matchState = matchState;
@@ -37,15 +35,12 @@ public class MatchmakingService : IMatchmakingService
 
     public async Task JoinQueueAsync(string userId, Guid deckId, string connectionId, CancellationToken ct = default)
     {
-        _queue[connectionId] = (userId, deckId);
+        await _queue.EnqueueAsync(connectionId, userId, deckId, ct);
 
-        var entries = _queue.ToArray();
-        if (entries.Length < 2) return;
+        var pair = await _queue.TryDequeuePairAsync(ct);
+        if (pair is null) return;
 
-        var (conn1, (u1, d1)) = entries[0];
-        var (conn2, (u2, d2)) = entries[1];
-        _queue.TryRemove(conn1, out _);
-        _queue.TryRemove(conn2, out _);
+        var (conn1, u1, d1, conn2, u2, d2) = pair.Value;
 
         var matchId = Guid.NewGuid();
         var state = _gameEngine.CreateNewGame(u1, d1, u2, d2);
@@ -66,9 +61,6 @@ public class MatchmakingService : IMatchmakingService
         );
     }
 
-    public Task LeaveQueueAsync(string connectionId, CancellationToken ct = default)
-    {
-        _queue.TryRemove(connectionId, out _);
-        return Task.CompletedTask;
-    }
+    public Task LeaveQueueAsync(string connectionId, CancellationToken ct = default) =>
+        _queue.RemoveAsync(connectionId);
 }

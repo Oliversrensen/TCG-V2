@@ -6,7 +6,7 @@ namespace TCG.Server.Services;
 /// Maps match IDs to SignalR connection IDs for broadcasting state updates.
 /// Supports reconnection by storing userId so we can update connection when client reconnects.
 /// </summary>
-public class MatchConnectionStore
+public class MatchConnectionStore : IMatchConnectionStore
 {
     private readonly ConcurrentDictionary<Guid, (string Conn1, string Conn2, string User1, string User2)> _matchToConnections = new();
     private readonly ConcurrentDictionary<string, Guid> _connToMatch = new();

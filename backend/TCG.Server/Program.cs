@@ -21,15 +21,22 @@ else
         opts.UseInMemoryDatabase("TcgDev"));
 }
 
-// Redis (optional - for matchmaking)
-var redisConnection = builder.Configuration["REDIS_CONNECTION"];
+// Redis (optional - for matchmaking, match state, connection store)
+var redisConnection = builder.Configuration["REDIS_URL"] ?? builder.Configuration["REDIS_CONNECTION"];
 if (!string.IsNullOrEmpty(redisConnection))
 {
-    builder.Services.AddStackExchangeRedisCache(opts =>
-    {
-        opts.Configuration = redisConnection;
-    });
-    builder.Services.AddSingleton(_ => StackExchange.Redis.ConnectionMultiplexer.Connect(redisConnection));
+    builder.Services.AddStackExchangeRedisCache(opts => opts.Configuration = redisConnection);
+    builder.Services.AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(_ =>
+        StackExchange.Redis.ConnectionMultiplexer.Connect(redisConnection!));
+    builder.Services.AddSingleton<TCG.Core.Services.IMatchStateStore, RedisMatchStateStore>();
+    builder.Services.AddSingleton<IMatchConnectionStore, RedisMatchConnectionStore>();
+    builder.Services.AddSingleton<IMatchmakingQueue, RedisMatchmakingQueue>();
+}
+else
+{
+    builder.Services.AddSingleton<TCG.Core.Services.IMatchStateStore, MatchStateStore>();
+    builder.Services.AddSingleton<IMatchConnectionStore, MatchConnectionStore>();
+    builder.Services.AddSingleton<IMatchmakingQueue, InMemoryMatchmakingQueue>();
 }
 
 // Auth (Neon Auth JWT, or dev-only test header when NEON_AUTH_URL is empty)
@@ -81,8 +88,6 @@ builder.Services.AddSignalR();
 builder.Services.AddScoped<IDeckService, DeckService>();
 builder.Services.AddScoped<ICardService, CardService>();
 builder.Services.AddScoped<IMatchmakingService, MatchmakingService>();
-builder.Services.AddSingleton<TCG.Core.Services.IMatchStateStore, MatchStateStore>();
-builder.Services.AddSingleton<MatchConnectionStore>();
 builder.Services.AddSingleton<TCG.GameLogic.IGameEngine, TCG.GameLogic.GameEngine>();
 
 builder.Services.AddCors(opts =>

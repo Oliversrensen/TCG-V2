@@ -52,7 +52,7 @@ TCG-V2/
 
 - `NEON_DATABASE_URL` – PostgreSQL connection string (Neon).
 - `NEON_AUTH_URL` – Neon Auth base URL for JWKS.
-- `REDIS_CONNECTION` – Redis for matchmaking queue and match state (optional for dev).
+- `REDIS_URL` or `REDIS_CONNECTION` – Redis for matchmaking queue, match state, connection store (optional; uses in-memory when unset).
 
 ## Conventions
 

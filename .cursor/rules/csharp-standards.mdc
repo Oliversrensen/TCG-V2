@@ -1,0 +1,14 @@
+---
+description: C# and .NET conventions for TCG backend
+globs: backend/**/*.cs
+alwaysApply: false
+---
+
+# C# Standards
+
+- Use async/await for I/O. Suffix with `Async` (e.g., `GetDeckAsync`).
+- Prefer `ActionResult<T>` for API controllers.
+- Use dependency injection; register services in `Program.cs`.
+- Follow standard .NET naming: PascalCase for public members, _camelCase for private fields.
+- Validate input; return 400 Bad Request with clear messages.
+- Log errors; avoid swallowing exceptions.

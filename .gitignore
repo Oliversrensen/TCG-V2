@@ -1,0 +1,30 @@
+# Backend
+backend/**/bin/
+backend/**/obj/
+backend/**/appsettings.Development.json
+*.user
+*.suo
+
+# Unity
+unity-client/[Ll]ibrary/
+unity-client/[Tt]emp/
+unity-client/[Oo]bj/
+unity-client/[Bb]uild/
+unity-client/[Bb]uilds/
+unity-client/[Ll]ogs/
+unity-client/[Uu]ser[Ss]ettings/
+unity-client/.vs/
+unity-client/*.csproj
+unity-client/*.sln
+unity-client/*.unityproj
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db

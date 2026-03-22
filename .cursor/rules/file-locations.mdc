@@ -1,0 +1,16 @@
+---
+description: Where to find or put specific functionality
+alwaysApply: true
+---
+
+# File Locations Quick Reference
+
+| What | Where |
+|------|-------|
+| API startup, DI, middleware | `backend/TCG.Server/Program.cs` |
+| REST controllers | `backend/TCG.Server/Controllers/` |
+| SignalR hubs | `backend/TCG.Server/Hubs/` |
+| Models, DTOs, interfaces | `backend/TCG.Core/` |
+| Game turn logic, validation | `backend/TCG.GameLogic/` |
+| EF migrations | `backend/TCG.Server/Migrations/` |
+| Card definitions seed | `backend/TCG.Core/` or `TCG.Server/Data/` |

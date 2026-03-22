@@ -1,0 +1,29 @@
+---
+description: TCG project architecture and conventions
+alwaysApply: true
+---
+
+# TCG-V2 Architecture Rules
+
+## Authority
+
+- **Server is authoritative**: Game state lives on the server. Clients send intents; server validates and broadcasts.
+- Never trust client for game state, turn order, or win conditions.
+
+## Auth
+
+- Use **Neon Auth** for sign-in/sign-up. Backend validates JWT via JWKS.
+- Protected endpoints and SignalR connections must validate JWT.
+- User ID comes from JWT `sub` claim (Neon Auth user id).
+
+## Data
+
+- **Neon PostgreSQL**: User decks, matches, game state.
+- **Redis**: Matchmaking queue, active match state (optional for dev).
+- Link to `neon_auth.user` for user identity.
+
+## Domains
+
+- **Decks**: CRUD, min/max card validation, deck selection for match.
+- **Matchmaking**: Queue-based pairing via SignalR.
+- **Game Logic**: Turn order, play card, attack, win condition in TCG.GameLogic.

@@ -92,10 +92,11 @@ public class DeckService : IDeckService
             throw new ArgumentException($"Deck must have between {MinDeckSize} and {MaxDeckSize} cards.");
 
         var cardIds = request.Slots.Select(s => s.CardDefinitionId).Distinct().ToList();
-        var validCards = await _db.CardDefinitions
+        var validCardList = await _db.CardDefinitions
             .Where(c => cardIds.Contains(c.Id))
             .Select(c => c.Id)
-            .ToHashSetAsync(ct);
+            .ToListAsync(ct);
+        var validCards = validCardList.ToHashSet();
 
         var slots = new List<DeckSlot>();
         foreach (var slotReq in request.Slots)

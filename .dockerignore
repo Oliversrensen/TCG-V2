@@ -1,0 +1,12 @@
+.git
+.github
+.vscode
+.cursor
+**/bin
+**/obj
+**/.vs
+**/*.user
+unity-client
+**/node_modules
+*.md
+.gitignore

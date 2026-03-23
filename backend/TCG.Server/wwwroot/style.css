@@ -1,0 +1,169 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  margin: 0;
+  padding: 1rem;
+  background: #1a1a2e;
+  color: #eee;
+  min-height: 100vh;
+}
+
+header h1 {
+  margin: 0 0 1.5rem;
+  font-size: 1.5rem;
+}
+
+.panel {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: #aaa;
+}
+
+.form-group input,
+.form-group select {
+  padding: 0.5rem;
+  margin-right: 0.5rem;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background: #16213e;
+  color: #eee;
+  font-size: 1rem;
+}
+
+.form-group input {
+  width: 200px;
+}
+
+button {
+  padding: 0.5rem 1rem;
+  background: #0f3460;
+  color: #eee;
+  border: 1px solid #e94560;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+button:hover {
+  background: #16213e;
+}
+
+#status, #gameStatus {
+  margin-top: 1rem;
+  color: #aaa;
+}
+
+.player-area {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #16213e;
+  border-radius: 8px;
+}
+
+.player-area h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+.board, .hand {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-height: 80px;
+}
+
+.card {
+  width: 70px;
+  height: 95px;
+  padding: 0.25rem;
+  background: #0f3460;
+  border: 2px solid #444;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.card:hover {
+  border-color: #e94560;
+}
+
+.card.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.card .stats {
+  font-weight: bold;
+  margin-top: 0.25rem;
+}
+
+.card.creature-on-board {
+  width: 65px;
+  height: 90px;
+}
+
+#gameActions {
+  margin-top: 1rem;
+}
+
+.card.selected {
+  border-color: #e94560;
+  box-shadow: 0 0 8px #e94560;
+}
+
+.small-btn {
+  margin-left: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.85rem;
+}
+
+#gameOver h2 {
+  margin-bottom: 1rem;
+}
+
+.profile-bar {
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background: #0f3460;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.auth-status {
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  min-height: 1.5em;
+  color: #aaa;
+  font-size: 0.9rem;
+}
+
+.auth-status:empty {
+  display: none;
+}
+
+#auth hr {
+  margin: 1.5rem 0;
+  border-color: #444;
+}
+
+#auth h2 {
+  font-size: 1rem;
+  margin: 0 0 0.5rem;
+}

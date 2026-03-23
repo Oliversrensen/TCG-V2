@@ -22,7 +22,7 @@ namespace TcgClient
             }
             _restClient = new TcgRestClient(_settings);
             _signalRClient = gameObject.AddComponent<TcgSignalRClient>();
-            _signalRClient.Configure(_settings, null, _settings.DevUserId);
+            _signalRClient.Configure(_settings, null);
 
             _signalRClient.OnMatchFound += (matchId, opponentDeckId) =>
                 Debug.Log($"Match found: {matchId}, opponent deck: {opponentDeckId}");

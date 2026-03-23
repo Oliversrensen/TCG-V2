@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using TCG.Core.Models;
 using TCG.Core.Services;
-using TCG.GameLogic;
 using TCG.Server.Data;
 using TCG.Server.Hubs;
 
@@ -12,7 +11,7 @@ public class MatchmakingService : IMatchmakingService
 {
     private readonly IMatchmakingQueue _queue;
     private readonly IHubContext<GameHub> _hubContext;
-    private readonly IGameEngine _gameEngine;
+    private readonly IGameSetupService _gameSetup;
     private readonly IMatchStateStore _matchState;
     private readonly IMatchConnectionStore _connections;
     private readonly TcgDbContext _db;
@@ -20,14 +19,14 @@ public class MatchmakingService : IMatchmakingService
     public MatchmakingService(
         IMatchmakingQueue queue,
         IHubContext<GameHub> hubContext,
-        IGameEngine gameEngine,
+        IGameSetupService gameSetup,
         IMatchStateStore matchState,
         IMatchConnectionStore connections,
         TcgDbContext db)
     {
         _queue = queue;
         _hubContext = hubContext;
-        _gameEngine = gameEngine;
+        _gameSetup = gameSetup;
         _matchState = matchState;
         _connections = connections;
         _db = db;
@@ -43,8 +42,7 @@ public class MatchmakingService : IMatchmakingService
         var (conn1, u1, d1, conn2, u2, d2) = pair.Value;
 
         var matchId = Guid.NewGuid();
-        var state = _gameEngine.CreateNewGame(u1, d1, u2, d2);
-        state.MatchId = matchId;
+        var state = await _gameSetup.CreateInitialStateAsync(u1, d1, u2, d2, matchId, ct);
 
         var match = new Match { Id = matchId, Status = MatchStatus.InProgress, CreatedAt = DateTime.UtcNow };
         match.Participants.Add(new MatchParticipant { Id = Guid.NewGuid(), MatchId = matchId, UserId = u1, DeckId = d1, PlayerIndex = 0, LifeTotal = 20, Status = ParticipantStatus.Active });
@@ -57,7 +55,9 @@ public class MatchmakingService : IMatchmakingService
 
         await Task.WhenAll(
             _hubContext.Clients.Client(conn1).SendAsync("MatchFound", matchId, d2, ct),
-            _hubContext.Clients.Client(conn2).SendAsync("MatchFound", matchId, d1, ct)
+            _hubContext.Clients.Client(conn2).SendAsync("MatchFound", matchId, d1, ct),
+            _hubContext.Clients.Client(conn1).SendAsync("StateUpdate", state, ct),
+            _hubContext.Clients.Client(conn2).SendAsync("StateUpdate", state, ct)
         );
     }
 

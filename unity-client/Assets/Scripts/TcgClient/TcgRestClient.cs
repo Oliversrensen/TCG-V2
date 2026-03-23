@@ -13,7 +13,6 @@ namespace TcgClient
     {
         private readonly TcgApiSettings _settings;
         private string? _jwt;
-        private string? _devUserId;
 
         public TcgRestClient(TcgApiSettings settings)
         {
@@ -21,7 +20,6 @@ namespace TcgClient
         }
 
         public void SetJwt(string jwt) => _jwt = jwt;
-        public void SetDevUserId(string userId) => _devUserId = userId;
 
         public IEnumerator Get(string path, Action<string> onSuccess, Action<string> onError)
         {
@@ -63,8 +61,6 @@ namespace TcgClient
 
             if (!string.IsNullOrEmpty(_jwt))
                 req.SetRequestHeader("Authorization", "Bearer " + _jwt);
-            else if (!string.IsNullOrEmpty(_devUserId))
-                req.SetRequestHeader("X-User-Id", _devUserId);
 
             req.downloadHandler = new DownloadHandlerBuffer();
             if (!string.IsNullOrEmpty(body))

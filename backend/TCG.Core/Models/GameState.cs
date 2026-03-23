@@ -11,6 +11,17 @@ public class GameStateSnapshot
     public string CurrentPlayerId { get; set; } = string.Empty;
     public GamePhase Phase { get; set; }
     public Dictionary<string, PlayerBoardState> Players { get; set; } = new();
+    /// <summary>Maps instance ID (Guid string) to card info for hand and board.</summary>
+    public Dictionary<string, CardInstanceInfo> CardInstances { get; set; } = new();
+}
+
+/// <summary>Info for a card instance (in hand or on board).</summary>
+public class CardInstanceInfo
+{
+    public Guid CardDefinitionId { get; set; }
+    public int Attack { get; set; }
+    public int Defense { get; set; }
+    public CardType CardType { get; set; }
 }
 
 public class PlayerBoardState
@@ -19,6 +30,8 @@ public class PlayerBoardState
     public int LifeTotal { get; set; }
     public List<string> Hand { get; set; } = new();
     public List<BoardCreature> Board { get; set; } = new();
+    /// <summary>Remaining deck (instance IDs) for future draw step.</summary>
+    public List<string> Library { get; set; } = new();
 }
 
 public class BoardCreature
@@ -27,6 +40,8 @@ public class BoardCreature
     public Guid CardDefinitionId { get; set; }
     public int CurrentAttack { get; set; }
     public int CurrentDefense { get; set; }
+    /// <summary>Turn when played. Creature cannot attack when PlayedOnTurn == CurrentTurn.</summary>
+    public int PlayedOnTurn { get; set; }
 }
 
 public enum GamePhase

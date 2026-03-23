@@ -14,3 +14,4 @@ alwaysApply: true
 | Game turn logic, validation | `backend/TCG.GameLogic/` |
 | EF migrations | `backend/TCG.Server/Migrations/` |
 | Card definitions seed | `backend/TCG.Core/` or `TCG.Server/Data/` |
+| Unit tests | `backend/TCG.Tests/` |

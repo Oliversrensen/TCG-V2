@@ -1,6 +1,8 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using TCG.Server.Auth;
 using TCG.Server.Data;
 using TCG.Server.Hubs;
 using TCG.Server.Services;
@@ -39,54 +41,62 @@ else
     builder.Services.AddSingleton<IMatchmakingQueue, InMemoryMatchmakingQueue>();
 }
 
-// Auth (Neon Auth JWT, or dev-only test header when NEON_AUTH_URL is empty)
-var neonAuthUrl = builder.Configuration["NEON_AUTH_URL"]?.TrimEnd('/');
-if (!string.IsNullOrEmpty(neonAuthUrl))
-{
-    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-        .AddJwtBearer(opts =>
-        {
-            opts.Authority = neonAuthUrl;
-            opts.MetadataAddress = $"{neonAuthUrl}/.well-known/openid-configuration";
-            opts.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidAudience = neonAuthUrl,
-                ValidateLifetime = true,
-            };
-            opts.Events = new JwtBearerEvents
-            {
-                OnMessageReceived = ctx =>
-                {
-                    var path = ctx.Request.Path;
-                    if (path.StartsWithSegments("/hubs") &&
-                        ctx.Request.Query.TryGetValue("access_token", out var token))
-                        ctx.Token = token;
-                    return Task.CompletedTask;
-                },
-                OnAuthenticationFailed = ctx =>
-                {
-                    if (ctx.Exception is SecurityTokenInvalidSignatureException)
-                        ctx.Response.Headers.Append("X-Auth-Error", "Invalid token signature");
-                    return Task.CompletedTask;
-                },
-            };
-        });
-    builder.Services.AddAuthorization();
-}
-else
-{
-    // Dev fallback when NEON_AUTH_URL not set: accept X-User-Id or user_id query
-    builder.Services.AddAuthentication(TCG.Server.Auth.DevTestAuthHandler.SchemeName)
-        .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, TCG.Server.Auth.DevTestAuthHandler>(TCG.Server.Auth.DevTestAuthHandler.SchemeName, null);
-    builder.Services.AddAuthorization();
-}
+// Auth: Neon Auth JWT (uses JWKS; no OIDC discovery)
+var neonAuthUrl = builder.Configuration["NEON_AUTH_URL"]?.TrimEnd('/')
+    ?? throw new InvalidOperationException("NEON_AUTH_URL is required. Set it in appsettings.json or environment.");
+var jwksUri = $"{neonAuthUrl}/.well-known/jwks.json";
 
-builder.Services.AddControllers();
+// Fetch JWKS at startup; use ScottBrady to load EdDSA keys (Microsoft.IdentityModel doesn't support EdDSA)
+using var http = new HttpClient();
+var jwksJson = await http.GetStringAsync(jwksUri);
+var signingKeys = NeonEdDsaKeyLoader.LoadFromJwks(jwksJson);
+if (signingKeys.Count == 0)
+    throw new InvalidOperationException("No EdDSA signing keys from JWKS. Check NEON_AUTH_URL.");
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(opts =>
+    {
+        opts.Authority = null;
+        opts.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            IssuerSigningKeys = signingKeys,
+            ValidateIssuerSigningKey = true,
+        };
+        opts.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = ctx =>
+            {
+                var path = ctx.Request.Path;
+                if (path.StartsWithSegments("/hubs") &&
+                    ctx.Request.Query.TryGetValue("access_token", out var token))
+                    ctx.Token = token;
+                return Task.CompletedTask;
+            },
+            OnAuthenticationFailed = ctx =>
+            {
+                var logger = ctx.HttpContext.RequestServices.GetService<ILogger<Program>>();
+                logger?.LogWarning("JWT auth failed: {Ex}", ctx.Exception?.Message);
+                if (ctx.Exception is SecurityTokenInvalidSignatureException)
+                    ctx.Response.Headers.Append("X-Auth-Error", "Invalid token signature");
+                return Task.CompletedTask;
+            },
+        };
+    });
+builder.Services.AddAuthorization();
+
+builder.Services.AddControllers()
+    .AddJsonOptions(opts =>
+    {
+        opts.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        opts.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    });
 builder.Services.AddSignalR();
 builder.Services.AddScoped<IDeckService, DeckService>();
 builder.Services.AddScoped<ICardService, CardService>();
+builder.Services.AddScoped<IGameSetupService, GameSetupService>();
 builder.Services.AddScoped<IMatchmakingService, MatchmakingService>();
 builder.Services.AddSingleton<TCG.GameLogic.IGameEngine, TCG.GameLogic.GameEngine>();
 
@@ -118,6 +128,8 @@ catch (Exception ex)
     logger.LogWarning(ex, "Database init failed");
 }
 
+app.UseDefaultFiles();
+app.UseStaticFiles();
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();

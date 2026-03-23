@@ -12,11 +12,15 @@ public class TcgDbContext : DbContext
     public DbSet<DeckSlot> DeckSlots => Set<DeckSlot>();
     public DbSet<Match> Matches => Set<Match>();
     public DbSet<MatchParticipant> MatchParticipants => Set<MatchParticipant>();
+    public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Deck>()
             .HasIndex(d => d.UserId);
+
+        modelBuilder.Entity<UserProfile>()
+            .HasKey(u => u.Id);
 
         modelBuilder.Entity<DeckSlot>()
             .HasOne(ds => ds.Deck)

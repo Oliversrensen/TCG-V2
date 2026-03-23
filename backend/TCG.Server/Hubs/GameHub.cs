@@ -51,14 +51,14 @@ public class GameHub : Hub
         await _matchmaking.LeaveQueueAsync(Context.ConnectionId);
     }
 
-    public async Task PlayCard(Guid matchId, Guid cardId, Guid? targetId)
+    public async Task PlayCard(Guid matchId, string instanceId, string? targetId)
     {
         if (string.IsNullOrEmpty(UserId)) return;
         var state = _matchState.Get(matchId);
         if (state is null) return;
         try
         {
-            var next = _gameEngine.PlayCard(state, UserId, cardId, targetId);
+            var next = _gameEngine.PlayCard(state, UserId, instanceId, targetId);
             _matchState.Set(matchId, next);
             await BroadcastStateAsync(matchId, next);
         }

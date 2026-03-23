@@ -11,10 +11,7 @@ namespace TcgClient
         [Header("API")]
         public string ApiBaseUrl = "http://localhost:5000";
 
-        [Header("Neon Auth (leave empty for dev with X-User-Id)")]
+        [Header("Neon Auth")]
         public string NeonAuthUrl = "";
-
-        [Header("Dev Only")]
-        public string DevUserId = "test-user-1";
     }
 }

@@ -34,8 +34,10 @@ public class DecksController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<DeckDto>> CreateDeck([FromBody] CreateDeckRequest request, CancellationToken ct)
+    public async Task<ActionResult<DeckDto>> CreateDeck([FromBody] CreateDeckRequest? request, CancellationToken ct)
     {
+        if (request is null)
+            return BadRequest(new { error = "Invalid request body. Expected { name, slots } with slots as [ { cardDefinitionId, quantity } ]." });
         try
         {
             var deck = await _deckService.CreateDeckAsync(UserId, request, ct);

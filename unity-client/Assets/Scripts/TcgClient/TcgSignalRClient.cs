@@ -13,7 +13,6 @@ namespace TcgClient
     {
         [SerializeField] private TcgApiSettings? _settings;
         private string? _jwt;
-        private string? _devUserId;
         private bool _connected;
 
         public event Action<Guid, Guid>? OnMatchFound;
@@ -21,11 +20,10 @@ namespace TcgClient
         public event Action<string>? OnGameOver;
         public event Action<string>? OnError;
 
-        public void Configure(TcgApiSettings settings, string? jwt, string? devUserId)
+        public void Configure(TcgApiSettings settings, string? jwt)
         {
             _settings = settings;
             _jwt = jwt;
-            _devUserId = devUserId;
         }
 
         public void JoinQueue(Guid deckId)
@@ -51,7 +49,7 @@ namespace TcgClient
         }
 
         /// <summary>
-        /// Build WebSocket URL with auth. For JWT: ?access_token=xxx. For dev: ?user_id=xxx
+        /// Build WebSocket URL with JWT auth.
         /// </summary>
         public string GetHubUrl()
         {
@@ -60,8 +58,6 @@ namespace TcgClient
             var url = baseUrl + "/hubs/game";
             if (!string.IsNullOrEmpty(_jwt))
                 url += "?access_token=" + Uri.EscapeDataString(_jwt);
-            else if (!string.IsNullOrEmpty(_devUserId))
-                url += "?user_id=" + Uri.EscapeDataString(_devUserId);
             return url;
         }
     }

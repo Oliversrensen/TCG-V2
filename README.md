@@ -25,13 +25,19 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for details.
 ```bash
 cd backend/TCG.Server
 cp appsettings.Development.example.json appsettings.Development.json
-# Edit appsettings.Development.json with NEON_DATABASE_URL, NEON_AUTH_URL
+# Edit appsettings.Development.json with NEON_DATABASE_URL and NEON_AUTH_URL (required)
 dotnet run
 ```
 
 ### Unity Client
 
 Open `unity-client/` in Unity 2022 LTS or newer. Configure API base URL and Neon Auth URL in project settings.
+
+### Tests
+
+```bash
+dotnet test backend/TCG.Tests/TCG.Tests.csproj
+```
 
 ## Project Structure
 
@@ -41,6 +47,7 @@ backend/
   TCG.Core/       # Models, interfaces
   TCG.GameLogic/  # Game engine
   TCG.Economy/    # (Later) Packs, economy
+  TCG.Tests/      # xUnit tests (DeckService, GameEngine)
 unity-client/     # Unity project
 docs/             # Architecture, API, data models
 ```

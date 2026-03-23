@@ -25,28 +25,43 @@ public class GameEngine : IGameEngine
         };
     }
 
-    public bool CanPlayCard(GameStateSnapshot state, string playerId, Guid cardId, Guid? targetId)
+    public bool CanPlayCard(GameStateSnapshot state, string playerId, string instanceId, string? targetId)
     {
         if (state.CurrentPlayerId != playerId) return false;
-        if (state.Phase != GamePhase.Main) return false;
-        return true;
+        if (!state.Players.TryGetValue(playerId, out var player)) return false;
+        if (!player.Hand.Contains(instanceId)) return false;
+        if (!state.CardInstances.TryGetValue(instanceId, out var info)) return false;
+        return info.CardType == CardType.Creature;
     }
 
-    public GameStateSnapshot PlayCard(GameStateSnapshot state, string playerId, Guid cardId, Guid? targetId)
+    public GameStateSnapshot PlayCard(GameStateSnapshot state, string playerId, string instanceId, string? targetId)
     {
-        if (!CanPlayCard(state, playerId, cardId, targetId))
+        if (!CanPlayCard(state, playerId, instanceId, targetId))
             throw new InvalidOperationException("Cannot play card");
-        // Placeholder: in full impl, remove from hand, add to board, apply effects
-        return state;
+        if (!state.CardInstances.TryGetValue(instanceId, out var info) || info.CardType != CardType.Creature)
+            throw new InvalidOperationException("Only creatures can be played to the board");
+        var next = CloneState(state);
+        var player = next.Players[playerId];
+        player.Hand.Remove(instanceId);
+        player.Board.Add(new BoardCreature
+        {
+            InstanceId = instanceId,
+            CardDefinitionId = info.CardDefinitionId,
+            CurrentAttack = info.Attack,
+            CurrentDefense = info.Defense,
+            PlayedOnTurn = next.CurrentTurn
+        });
+        return next;
     }
 
     public bool CanAttack(GameStateSnapshot state, string playerId, string attackerInstanceId, string targetInstanceId)
     {
         if (state.CurrentPlayerId != playerId) return false;
-        if (state.Phase != GamePhase.Attack) return false;
         if (!state.Players.TryGetValue(playerId, out var player)) return false;
         var attacker = player.Board.FirstOrDefault(c => c.InstanceId == attackerInstanceId);
-        return attacker != null;
+        if (attacker == null) return false;
+        if (attacker.PlayedOnTurn >= state.CurrentTurn) return false; // Summoning sickness
+        return true;
     }
 
     public GameStateSnapshot Attack(GameStateSnapshot state, string playerId, string attackerInstanceId, string targetInstanceId)
@@ -96,6 +111,7 @@ public class GameEngine : IGameEngine
             CurrentTurn = s.CurrentTurn,
             CurrentPlayerId = s.CurrentPlayerId,
             Phase = s.Phase,
+            CardInstances = new Dictionary<string, CardInstanceInfo>(s.CardInstances),
             Players = s.Players.ToDictionary(kv => kv.Key, kv => new PlayerBoardState
             {
                 UserId = kv.Value.UserId,
@@ -107,7 +123,9 @@ public class GameEngine : IGameEngine
                     CardDefinitionId = c.CardDefinitionId,
                     CurrentAttack = c.CurrentAttack,
                     CurrentDefense = c.CurrentDefense,
+                    PlayedOnTurn = c.PlayedOnTurn,
                 }).ToList(),
+                Library = new List<string>(kv.Value.Library),
             }),
         };
     }

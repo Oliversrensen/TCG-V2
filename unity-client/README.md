@@ -25,4 +25,4 @@ For full SignalR support, add the Microsoft.AspNetCore.SignalR.Client package vi
 ## Auth
 
 - **Production**: Call Neon Auth REST API for sign-in, store JWT, pass to `TcgRestClient.SetJwt()` and `TcgSignalRClient.Configure()`.
-- **Dev**: Use `X-User-Id` header (set `DevUserId` in TcgApiSettings). The backend accepts this when `NEON_AUTH_URL` is empty.
+- All requests require JWT from Neon Auth (sign in via Neon Auth API first).

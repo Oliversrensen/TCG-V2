@@ -9,6 +9,7 @@ COPY backend/TCG.Core/ backend/TCG.Core/
 COPY backend/TCG.GameLogic/ backend/TCG.GameLogic/
 COPY backend/TCG.Economy/ backend/TCG.Economy/
 COPY backend/TCG.Server/ backend/TCG.Server/
+COPY backend/TCG.Tests/ backend/TCG.Tests/
 
 # Restore and publish TCG.Server (includes all dependencies)
 RUN dotnet restore backend/TCG.sln
